@@ -130,8 +130,9 @@ public abstract class AbstractGazeDeviceManager implements GazeDeviceManager {
         }
     }
 
-    synchronized void onGazeUpdate(Point2D gazePositionOnScreen) {
+    synchronized void onGazeUpdate(Point2D gazePositionOnScreen){onGazeUpdate(gazePositionOnScreen, false);}
 
+    synchronized void onGazeUpdate(Point2D gazePositionOnScreen, boolean blinking) {
         // notifyAllGazeMotionListeners(gazePositionOnScreen);
         final double positionX = gazePositionOnScreen.getX();
         final double positionY = gazePositionOnScreen.getY();
@@ -148,16 +149,16 @@ public abstract class AbstractGazeDeviceManager implements GazeDeviceManager {
 
                 final Node node = gi.getNode();
 
-                EventFire(positionX, positionY, gi, node);
+                EventFire(positionX, positionY, blinking, gi, node);
                 // log.info("Fire : "+node+" then recursion !");
-                recursiveEventFire(positionX, positionY, node);
+                recursiveEventFire(positionX, positionY, blinking, node);
 
             }
 
         }
     }
 
-    public void recursiveEventFire(double positionX, double positionY, Node node) {
+    public void recursiveEventFire(double positionX, double positionY, boolean blinking, Node node) {
         if (node instanceof Pane) {
             for (Node child : ((Pane) node).getChildren()) {
                 if (!shapesEventFilter.containsKey(new IdentityKey<>(child))) {
@@ -168,29 +169,28 @@ public abstract class AbstractGazeDeviceManager implements GazeDeviceManager {
                 // log.info("child : "+child+" fired !");
                 GazeInfos gi = shapesEventFilter.get(new IdentityKey<>(child));
                 if (gi != null) {
-                    EventFire(positionX, positionY, gi, child);
+                    EventFire(positionX, positionY, blinking, gi, child);
                 }
-                recursiveEventFire(positionX, positionY, child);
+                recursiveEventFire(positionX, positionY, blinking, child);
 
             }
         }
     }
 
-    public void EventFire(double positionX, double positionY, GazeInfos gi, Node node) {
+    public void EventFire(double positionX, double positionY, boolean blinking, GazeInfos gi, Node node) {
         // log.info("GazeInfo: " + gi);
         if (!node.isDisable()) {
-
             Point2D localPosition = node.screenToLocal(positionX, positionY);
             if (localPosition != null && node.contains(localPosition)) {
                 if (gi.isOn()) {
                     Platform.runLater(() -> node
-                            .fireEvent(new GazeEvent(GazeEvent.GAZE_MOVED, gi.getTime(), positionX, positionY)));
+                            .fireEvent(new GazeEvent(GazeEvent.GAZE_MOVED, gi.getTime(), positionX, positionY, blinking)));
                 } else {
 
                     gi.setOn(true);
                     gi.setTime(System.currentTimeMillis());
                     Platform.runLater(() -> node
-                            .fireEvent(new GazeEvent(GazeEvent.GAZE_ENTERED, gi.getTime(), positionX, positionY)));
+                            .fireEvent(new GazeEvent(GazeEvent.GAZE_ENTERED, gi.getTime(), positionX, positionY, blinking)));
                 }
             } else {// gaze is not on the shape
 
@@ -199,7 +199,7 @@ public abstract class AbstractGazeDeviceManager implements GazeDeviceManager {
                     gi.setOn(false);
                     gi.setTime(-1);
                     Platform.runLater(() -> node
-                            .fireEvent(new GazeEvent(GazeEvent.GAZE_EXITED, gi.getTime(), positionX, positionY)));
+                            .fireEvent(new GazeEvent(GazeEvent.GAZE_EXITED, gi.getTime(), positionX, positionY, blinking)));
                 } else {// gaze was not on the shape previously
                     // nothing to do
 

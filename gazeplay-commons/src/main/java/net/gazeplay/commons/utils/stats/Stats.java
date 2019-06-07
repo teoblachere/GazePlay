@@ -25,9 +25,7 @@ import net.gazeplay.commons.utils.games.Utils;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -80,6 +78,8 @@ public class Stats implements GazeMotionListener {
     private SavedStatsInfo savedStatsInfo;
     private WritableImage gameScreenShot;
 
+    private ArrayList<Long> blinks;
+
     private String directoryOfVideo;
 
     private String nameOfVideo;
@@ -117,7 +117,7 @@ public class Stats implements GazeMotionListener {
 
         }
         lifeCycle.start(() -> {
-
+            blinks = new ArrayList<>();
             if (config.isHeatMapDisabled()) {
                 log.info("HeatMap is disabled, skipping instantiation of the HeatMap Data model");
                 if (config.isFixationSequenceDisabled()) {// neither HeatMap nor Fixation Sequence are enabled
@@ -284,9 +284,12 @@ public class Stats implements GazeMotionListener {
         final String heatmapFilePrefix = Utils.now() + "-heatmap";
         final String fixationSequenceFilePrefix = Utils.now() + "-fixationSequence";
         final String screenshotPrefix = Utils.now() + "-screenshot";
+        final String blinksPrefix = Utils.now() + "-blinks";
 
         File heatMapPngFile = new File(todayDirectory, heatmapFilePrefix + ".png");
         File heatMapCsvFile = new File(todayDirectory, heatmapFilePrefix + ".csv");
+
+        File blinksCsvFile = new File(todayDirectory, blinksPrefix + ".csv");
 
         File fixationSequencePngFile = new File(todayDirectory, fixationSequenceFilePrefix + ".png");
 
@@ -310,8 +313,29 @@ public class Stats implements GazeMotionListener {
         if (this.fixationSequence != null) {
             saveFixationSequenceAsPng(fixationSequencePngFile);
         }
+
+        if(blinks.size() > 0){
+            saveBlinksAsCsv(blinksCsvFile);
+        }else{
+            log.info("No blinks");
+        }
         savedStatsInfo.notifyFilesReady();
         return savedStatsInfo;
+    }
+
+    private void saveBlinksAsCsv(File file) {
+        try (PrintWriter out = new PrintWriter(file, "UTF-8")) {
+            for(long blink : blinks){
+                out.print(blink);
+                if(blinks.lastIndexOf(blink) != blinks.size()-1){
+                    out.print(", ");
+                }
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
     }
 
     public long computeRoundsDurationAverageDuration() {
@@ -540,4 +564,8 @@ public class Stats implements GazeMotionListener {
         gameScreenShot = gameContextScene.snapshot(null);
     }
 
+    public void blink(){
+        log.info("blink");
+        blinks.add(System.currentTimeMillis() - startTime);
+    }
 }

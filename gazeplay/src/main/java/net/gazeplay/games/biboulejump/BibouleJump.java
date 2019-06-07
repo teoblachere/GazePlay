@@ -152,11 +152,13 @@ public class BibouleJump extends AnimationTimer implements GameLifeCycle {
                 gazeTarget = new Point2D(((MouseEvent) event).getX(), ((MouseEvent) event).getY());
             } else if (event.getEventType() == GazeEvent.GAZE_MOVED) {
                 gazeTarget = interactionOverlay.screenToLocal(((GazeEvent) event).getX(), ((GazeEvent) event).getY());
+            } else if(event.getEventType() == GazeEvent.GAZE_EXITED && ((GazeEvent)event).isBlinking()){
+                stats.blink();
             }
         };
 
         interactionOverlay.addEventFilter(MouseEvent.MOUSE_MOVED, movementEvent);
-        interactionOverlay.addEventFilter(GazeEvent.GAZE_MOVED, movementEvent);
+        interactionOverlay.addEventFilter(GazeEvent.ANY, movementEvent);
         interactionOverlay.setFill(Color.TRANSPARENT);
         foregroundLayer.getChildren().add(interactionOverlay);
 
@@ -217,7 +219,7 @@ public class BibouleJump extends AnimationTimer implements GameLifeCycle {
 
     private int getsetHighscore(int score) {
 
-        File f = new File(Utils.getUserStatsFolder(config.getUserName()) + "/Biboule Jump/highscores.dat");
+        File f = new File(Utils.getUserStatsFolder(config.getUserName()) + "/biboule-jump/highscores.dat");
         try {
             ArrayList<Integer> highscores = new ArrayList();
             if (!f.createNewFile()) {

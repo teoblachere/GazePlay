@@ -9,8 +9,10 @@ import javafx.event.EventType;
 import javafx.scene.input.InputEvent;
 import lombok.Getter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 @ToString
+@Slf4j
 public class GazeEvent extends InputEvent {
 
     public static final EventType<GazeEvent> ANY = new EventType<>(InputEvent.ANY, "GAZE");
@@ -37,13 +39,8 @@ public class GazeEvent extends InputEvent {
     @Getter
     private final double y;
 
-    /**
-     * Creates a new {@code LightningEvent} with an event type of {@code PLASMA_STRIKE}. The source and Target of the
-     * event is set to {@code NULL_SOURCE_TARGET}.
-     */
-    public GazeEvent() {
-        this(GAZE_ENTERED);
-    }
+    @Getter
+    private final boolean blinking;
 
     public GazeEvent(EventType<GazeEvent> et) {
         this(et, 0);
@@ -53,11 +50,14 @@ public class GazeEvent extends InputEvent {
         this(et, time, 0, 0);
     }
 
-    public GazeEvent(EventType<GazeEvent> et, long time, double x, double y) {
+    public GazeEvent(EventType<GazeEvent> et, long time, double x, double y){ this(et, time, x, y, false);}
+
+    public GazeEvent(EventType<GazeEvent> et, long time, double x, double y, boolean blinking) {
         super(et);
         this.time = time;
         this.x = x;
         this.y = y;
+        this.blinking = blinking;
     }
 
     /**
@@ -75,6 +75,7 @@ public class GazeEvent extends InputEvent {
         this.time = 0;
         this.x = 0;
         this.y = 0;
+        this.blinking = false;
     }
 
     @Override
