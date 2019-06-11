@@ -79,6 +79,7 @@ public class Stats implements GazeMotionListener {
     private WritableImage gameScreenShot;
 
     private ArrayList<Long> blinks;
+    private ArrayList<Long> rounds;
 
     private String directoryOfVideo;
 
@@ -104,6 +105,7 @@ public class Stats implements GazeMotionListener {
 
     public void notifyNewRoundReady() {
         currentRoundStartTime = System.currentTimeMillis();
+        rounds.add(currentRoundStartTime - startTime);
         takeScreenShot();
     }
 
@@ -118,6 +120,7 @@ public class Stats implements GazeMotionListener {
         }
         lifeCycle.start(() -> {
             blinks = new ArrayList<>();
+            rounds = new ArrayList<>();
             if (!config.isHeatMapDisabled())
                 heatMap = instanciateHeatMapData(gameContextScene, heatMapPixelSize);
             startTime = System.currentTimeMillis();
@@ -270,6 +273,13 @@ public class Stats implements GazeMotionListener {
             for(long blink : blinks){
                 out.print(blink);
                 if(blinks.lastIndexOf(blink) != blinks.size()-1){
+                    out.print(", ");
+                }
+            }
+            out.println("");
+            for(long round : rounds){
+                out.print(round);
+                if(rounds.lastIndexOf(round) != rounds.size()-1){
                     out.print(", ");
                 }
             }
