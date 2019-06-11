@@ -129,10 +129,23 @@ public class Race extends Parent implements GameLifeCycle {
                 double x = e.getX();
                 double y = e.getY();
                 hand.setRotate(getAngle(new Point(x, y)));
+
+                if(e.getEventType() == GazeEvent.GAZE_EXITED && ((GazeEvent)e).isBlinking()){
+                    stats.blink();
+                }
             }
         };
         imageRectangle.addEventFilter(MouseEvent.ANY, handEvent);
-        this.addEventFilter(GazeEvent.ANY, handEventGaze);
+        imageRectangle.addEventFilter(GazeEvent.ANY, e -> {
+            double x = e.getX();
+            double y = e.getY();
+            hand.setRotate(getAngle(new Point(x, y)));
+
+            if(e.getEventType() == GazeEvent.GAZE_EXITED && ((GazeEvent)e).isBlinking()){
+                stats.blink();
+            }
+        });
+        gameContext.getGazeDeviceManager().addEventFilter(imageRectangle);
 
         blue = new Image("data/" + gameType + "/images/Blue.png");
         green = new Image("data/" + gameType + "/images/Green.png");
@@ -169,7 +182,6 @@ public class Race extends Parent implements GameLifeCycle {
                             ((Target) e.getTarget()).done = true;
                             enter((Target) e.getTarget());
                             stats.incNbGoals();
-                            stats.notifyNewRoundReady();
                         }
                     }
                 }
@@ -462,6 +474,7 @@ public class Race extends Parent implements GameLifeCycle {
                     movementPerBug++;
                     raceFinished();
                     gameContext.endWinTransition();
+                    stats.notifyNewRoundReady();
                     raceIsFinished = false;
                     makePlayer(0.6);
                     racers[0] = makeRacers(0.7);

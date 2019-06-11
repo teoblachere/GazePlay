@@ -94,6 +94,8 @@ public class Stats implements GazeMotionListener {
     public Stats(Scene gameContextScene, String gameName) {
         this.gameContextScene = gameContextScene;
         this.gameName = gameName;
+        blinks = new ArrayList<>();
+        rounds = new ArrayList<>();
     }
 
     private static double[][] instanciateHeatMapData(Scene gameContextScene, double heatMapPixelSize) {
@@ -119,8 +121,6 @@ public class Stats implements GazeMotionListener {
 
         }
         lifeCycle.start(() -> {
-            blinks = new ArrayList<>();
-            rounds = new ArrayList<>();
             if (!config.isHeatMapDisabled())
                 heatMap = instanciateHeatMapData(gameContextScene, heatMapPixelSize);
             startTime = System.currentTimeMillis();
